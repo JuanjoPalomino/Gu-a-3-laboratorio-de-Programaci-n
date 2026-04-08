@@ -14,7 +14,7 @@ class Vehiculo:
         self.direccion = 1  
         self.vueltas = 0
 
-        self.figura = canvas.create_rectangle(self.x, y, self.x+40, y+20, fill="blue")
+        self.figura = canvas.create_rectangle(self.x, y, self.x+40, y+20, fill="red")
         self.texto = canvas.create_text(self.x+20, y-10, text=nombre)
 
     def mover(self, velocidad_global, meta, inicio):
@@ -39,10 +39,10 @@ class Carrera:
         self.finalizados = []
 
         for i in range(num_vehiculos):
-            v = Vehiculo(canvas, f"V{i+1}", 50 + i*30)
+            v = Vehiculo(canvas, f"CARRO {i+1}", 50 + i*30)
             self.vehiculos.append(v)
 
-    def correr(self, velocidad_global, callback_fin):
+    def correr(self, velocidad_global):
         inicio = 10
 
         en_carrera = True
@@ -59,10 +59,9 @@ class Carrera:
             self.canvas.update()
             time.sleep(0.05)
 
-        
         self.vehiculos.sort(key=lambda x: x.tiempo)
 
-        callback_fin(self.vehiculos)
+        return self.vehiculos
 
 class Interfaz:
     def __init__(self, root):
@@ -106,25 +105,18 @@ class Interfaz:
 
         self.carrera = Carrera(self.canvas, 10, rondas)
 
-        self.root.after(100, lambda: self.ejecutar_carrera(apuesta, velocidad_global))
+        vehiculos = self.carrera.correr(velocidad_global)
 
-    def ejecutar_carrera(self, apuesta, velocidad_global):
-        def fin(vehiculos):
-            ganador = vehiculos[0]
+        texto = "RESULTADOS:\n"
+        for i, v in enumerate(vehiculos):
+            texto += f"{i+1}. {v.nombre} - Tiempo: {v.tiempo}\n"
 
-            texto = "RESULTADOS:\n"
-            for i, v in enumerate(vehiculos):
-                texto += f"{i+1}. {v.nombre} - Tiempo: {v.tiempo}\n"
+        if vehiculos[0].nombre == f"V{apuesta}":
+            texto += "\n ¡GANASTE!"
+        else:
+            texto += f"\n Perdiste. Ganó {vehiculos[0].nombre}"
 
-            if ganador.nombre == f"V{apuesta}":
-                texto += "\n ¡GANASTE LA APUESTA!"
-            else:
-                texto += f"\n Perdiste. Ganó {ganador.nombre}"
-
-            self.resultado.config(text=texto)
-
-        self.carrera.correr(velocidad_global, fin)
-
+        self.resultado.config(text=texto)
 
 root = tk.Tk()
 app = Interfaz(root)
